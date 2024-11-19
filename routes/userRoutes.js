@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser } = require("../controller/auth/auth");
+const { registerUser, verifyEmail } = require("../controller/auth/auth");
 const router = express.Router();
 
 router.route("/acd").get((req, res) => {
@@ -10,5 +10,6 @@ router.route("/acd").get((req, res) => {
 });
 
 router.route("/sign-up").post(registerUser);
+router.route("verify-token/:token").get(verifyEmail);
 
 module.exports = router;

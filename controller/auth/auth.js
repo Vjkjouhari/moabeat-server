@@ -208,27 +208,34 @@ const MailGenerator = new Mailgen({
 
 const sendVerificationLink = async (req, res, token) => {
   console.log("sendMail", token);
-  const { to, name, message } = req.body;
-  const email = {
+
+  const { email, name, message } = req.body;
+
+  const encodedString = Buffer.from(`${token}:${email}`).toString("base64");
+
+  const emailFormat = {
     body: {
       name: name,
       intro:
         message ||
         "Welcome to Moa Beat Community! We're very excited to have you on board.",
-      outro: `<div style=" margin: auto; 
-              width: 50%; 
-              border: 4px solid gray; 
-              padding: 10px;text-align: center; align-items:center; border-radius: 20px;"> 
-                  <div style="margin:auto;width:50%; border: 6px solid brown; border-radius: 20px;"> 
-                  <h3 style=" font-size: 15px; color: gray;">MoaBeat</h3> 
-                  </div> 
-                  <p>Thank You for registering with us!!</p> 
-                  <h4 style="color:blue">Click on this link to verify and RESET your password</h4> 
-                  <div style="margin:auto;width:20% ;border:2px solid; background:blue;"><a style="color:white;">Cick Here</a></div> 
-              </div>`,
+      outro: `
+        <div style="margin: auto; width: 50%; border: 4px solid gray; padding: 10px; text-align: center; align-items: center; border-radius: 20px;">
+          <div style="margin: auto; width: 50%; border: 6px solid brown; border-radius: 20px;">
+            <h3 style="font-size: 15px; color: gray;">MoaBeat</h3>
+          </div>
+          <p>Thank you for registering with us!</p>
+          <h4 style="color: blue;">Click on this link to verify and RESET your password</h4>
+          <div style="margin: auto; width: 20%; border: 2px solid; background: blue; border-radius: 5px;">
+            <!-- This is the key part where the token is added to the link -->
+            <a href="http://localhost:3000/api/v1/verify-token/${encodedString}" style="color: white; padding: 10px; text-decoration: none; display: block; text-align: center;">Click Here</a>
+          </div>
+        </div>
+      `,
     },
   };
-  const emailBody = MailGenerator.generate(email);
+
+  const emailBody = MailGenerator.generate(emailFormat);
   const mailOptions = {
     from: process.env.EMAIL,
     to: "vejouhari@gmail.com",
@@ -247,9 +254,23 @@ const sendVerificationLink = async (req, res, token) => {
   });
 };
 
+const verifyEmail = async (req, res) => {
+  console.log("sdfsdfsdf", req.query.token);
+  const encodedData = req.params.token;
+  if (encodedData) {
+    const decodedData = Buffer.from(encodedData, "base64").toString("utf-8");
+    console.log("decoded", decodedData);
+    const [token, email] = decodedData.split(":");
+    res.send(`Token: ${token}, Email: ${email}`);
+  } else {
+    res.send("Invalid data");
+  }
+};
+
 module.exports = {
   registerUser,
   getUser,
   signInUsingEmail,
   signInUsingMobile,
+  verifyEmail,
 };
